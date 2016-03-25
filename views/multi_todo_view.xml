@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<openerp>
+	<data>
+		
+		<!-- form view -->
+
+		<record id="form_view_inherited_todo_task" model="ir.ui.view">
+			<field name="name">Todo Task inherited</field>
+			<field name="model">todo.task</field>
+			<field name="inherit_id" ref="To_do_App.form_view_todo_task"/>
+			<field name="arch" type="xml">
+				<xpath expr="//button[@string='Clear All Done']" position="after">
+					<button name="set_started" type="object" string="Set started" attrs="{'invisible':[('stage_state', 'in', ['started','in_progress','done'])]}"/>
+					<button name="set_progress" type="object" string="In progress" attrs="{'invisible':[('stage_state', 'in', ['in_progress'])]}"/>
+					<button name="set_done" type="object" string="Done" attrs="{'invisible':[('stage_state', '=', 'done')]}"/>
+				</xpath> 
+				<xpath expr="//group[@name ='top_group']" position="before">
+					<div class="oe_title">
+						<h1>Task for <field name="desc" class="oe_inline"/></h1>
+					</div>
+				</xpath>
+				<xpath expr="//button[@string = 'Done']" position="after">
+					<field name="stage_state" widget="statusbar"/>
+				</xpath>
+
+				<xpath expr="//button[@string = 'Toggle Done']" position="attributes">
+					<attribute name="attrs">{'invisible': [('stage_state','in', ['done','cancel'])]}</attribute>
+				</xpath>
+				<xpath expr="//group[@name ='top_group']" position="before">
+					<div name="buttons" class="oe_right oe_button_box">
+						<button class="oe_stat_button" type="action" icon="fa-tasks" name="%(To_do_App.action_todo_task)d" string="" context="{'search_default_user_id': user_id,}">
+							<field string="To-dos" name="user_todo_count" widget="statinfo"/>
+						</button>
+					</div>
+				</xpath>
+
+				<sheet position="after">
+					<div class="oe_chatter">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</sheet>
+				<xpath expr="//field[@name ='is_done']" position="before">
+					<field name="date"/>
+				</xpath>
+				<xpath expr="//field[@name ='name']" position="after">
+					<field name="user_id"/>
+					<field name="creator"/>
+					<field name="deadline"/>
+					<field name="priority"/>
+					<!-- <field name="refers_to"/> -->
+				</xpath>
+				<xpath expr="//field[@name ='active']" position="attributes">
+					<attribute name="invisible">1</attribute>
+				</xpath>
+			</field>
+		</record>
+
+
+		<!-- Tree view -->
+
+		<record id="tree_view_inherited_todo_task" model="ir.ui.view">
+			<field name="name">Todo Task Tree Inherited</field>
+			<field name="model">todo.task</field>
+			<field name="inherit_id" ref="To_do_App.tree_view_todo_task"/>
+			<field name="arch" type="xml">
+				<tree position="attributes">
+					<attribute name="colors">red:priority=='2';green:is_done==True</attribute>
+				</tree>
+				<xpath expr="//field[@name = 'name']" position="after">
+					<field name="priority"/>
+					<field name="user_id"/>
+				</xpath>
+			</field>
+		</record>
+
+<!-- 		Search view -->
+
+		<record id="search_view_inherited_todo_task" model="ir.ui.view">
+			<field name="name">Todo Task Search Inherited</field>
+			<field name="model">todo.task</field>
+			<field name="inherit_id" ref="To_do_App.search_view_todo_task"/>
+			<field name="arch" type="xml">
+				<xpath expr="//filter[@name = 'name']" position="after">
+					
+					<field name="user_id"/>
+					<filter name="filter_not_assigned" string="Not Assigned" domain="[('user_id','=',False)]"/>
+
+				</xpath>
+			</field>
+		</record>
+
+
+		<!-- Kanban view -->
+
+		<record id="todo_kanban_view" model="ir.ui.view">
+			<field name="name">todo.kanban.view</field>
+			<field name="model">todo.task</field>
+			<field name="type">kanban</field>
+			<field name="arch" type="xml">
+
+				<kanban colors="green:is_done==True">
+					<templates>
+						<t t-name="kanban-box"> <!-- commented ones can be used in vignette view -->
+							<!-- <div class="oe_kanban_vignette"> --><div class="oe_kanban_card">
+								<img t-att-src="kanban_image('res.users','image_small', record.user_id.raw_value)" class="oe_kanban_image"/>
+								<!-- <div class="oe_kanban_details"> --><div class="oe_kanban_content">
+									<h4><a type="open">
+										<field name="name"/>
+									</a></h4>
+									<ul>
+										<li><field name="user_id" /></li>
+										<li><field name="deadline"/></li>
+									</ul>
+									<div class="oe_kanban_footer_left"> <!-- not used in vignette view -->
+										<field name="priority" widget="priority"/>
+									</div>
+								</div>
+							</div>
+						</t>
+					</templates>
+				</kanban>
+			</field>
+		</record>
+
+
+		<!-- Calendar view -->
+		
+		<record id="todo_calender_view" model="ir.ui.view">
+			<field name="name">todo.calender.view</field>
+			<field name="model">todo.task</field>
+			<field name="arch" type="xml">
+				<calendar date_start="deadline" color="stage_state" display="[name], Stage [stage_state]">
+					<field name="name"/>
+					<field name="stage_state"/>
+				</calendar>
+
+			</field>
+		</record>
+
+		<!-- gantt view -->
+		<!-- <record id="todo_gantt_view" model="ir.ui.view">
+			<field name="name">todo.gantt.view</field>
+			<field name="model">todo.task</field>
+			<field name="arch" type="xml">
+				<gantt date_start="deadline" default_group_by="user_id"/>
+			</field>
+		</record> -->
+
+		<record id="todo_graph_view" model="ir.ui.view">
+			<field name="name">todo.graph.view</field>
+			<field name="model">todo.task</field>
+			<field name="arch" type="xml">
+				<graph type="pivot">
+					<field name="stage_state" type="col"/>
+					<field name="user_id"/>
+					<field name="deadline" interval="week"/>
+					
+				</graph>
+			</field>
+		</record>
+
+
+
+	</data>
+</openerp>
+
